@@ -19,11 +19,15 @@ TBA
 
 ## Help
 
+Any issues can be directed to this Github page.
+
 ## Authors
 
 Contributors names and contact info
 
 ## Version History
+
+This project is currently being developed. This is a repo for the demo version.
 
 ## License
 
