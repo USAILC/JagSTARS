@@ -1,22 +1,21 @@
-# Project Title
-
-Simple overview of use/purpose.
+# JAGSTARS
+Just a Google Sheet Tracking and Reporting System
 
 ## Description
 
-An in-depth paragraph about your project and overview of use.
+JAGSTARS comprises a suite of web-based applications built on Google Workspace tools, including Sheets and Docs, with additional functionality provided by the Javascript-based Google Apps Script platform. The applications encompass:
 
+   * Client Relationship Management (CRM) Database: Maintains professional development records.
+   * Data Upload Tool: Easily adds event data to the CRM, validated before inclusion.
+   * Report Generation Tool: Provides insights into individual and departmental participation.
+   * Support Ticket Application: Tracks day-to-day staff interactions with clients.
+
+JAGSTARS employs relational Google Sheets for data storage, associating user records with specific professional development events or support requests through email addresses or unique employee IDs. The support ticket system, designed as a single-page web application, implements different workflow stages, filtering, and notification features, streamlining ticket processing and communication.
 ## Getting Started
 
-### Dependencies
+### Using
 
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
-
-### Installing
-
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+TBA
 
 ## Help
 
