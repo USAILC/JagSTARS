@@ -1,0 +1,141 @@
+<!-- CUSTOM CSS -->
+<style>
+    .search-box-outer {
+      margin-bottom:rem;
+    }
+    
+    .search-box-inner {
+      background-color:#BF0D3E;
+      padding:0.5rem;
+      display: block;
+      position: relative;
+    }
+    
+    .search-box-inner input{
+      border-radius:0.3rem;
+      margin-bottom: 0.3rem;
+    }
+    
+    .search-box-inner label{
+      margin-right:0.5rem;
+      margin-bottom:0.5rem;
+    }
+    
+    .tabulator-alert-msg{
+      display:inline-block;
+      margin:0 auto;
+      height: 500px;
+      width: 500px;
+      padding:10px 20px;
+      border-radius:10px;
+      background:#fff;
+      font-weight:700;
+      font-size:16px
+      }
+    
+    legend{
+    font-size: 16px; 
+    }
+    
+    .tabulator-tableHolder {
+      max-height: 100% !important;
+    }
+    
+    /* Create two equal columns that floats next to each other */
+    .column {
+      float: left;
+      width: 15%;
+      padding: 0px;
+    }
+    
+    .textcolumn {
+      float: left;
+      width: 75%;
+      padding: 0px;
+    }
+    
+    /* .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    } */
+    
+    .recordtext {
+      font-size: 14px;
+    }
+    
+    .tabulator .tabulator-header .tabulator-col .tabulator-header-filter {
+        position: relative;
+        box-sizing: border-box;
+        margin-top: 2px;
+        width: 100%;
+        text-align: center;
+        display: none;
+    }
+    
+    #loading{
+      position: fixed;
+        top:0 ;
+        left:0;
+        z-index:10000;
+      width:100vw;
+      height:100vh;
+      background-color: rgba(255,255,255,0.9);
+    }
+    
+    .webpage{
+      max-width: 87%;
+      margin: auto;
+      margin-top:50px;
+    }
+    
+    body{
+          /* margin: 150px; */
+          font-family: Tahoma, Verdana, Arial, sans-serif;
+          background-image: linear-gradient(90deg, rgba(48, 110, 133, 0.493) 0%, rgba(20, 35, 52, 0.534) 100%), 
+              url(https://www.southalabama.edu/departments/publicrelations/brand/images/photos/zoom/zoom9.jpg);
+          background-color: blue;
+          background-repeat: repeat;
+          background-position: center;
+          background-size: cover;
+          /* height: 100%; */
+          background-attachment: fixed;
+      }
+    
+    .helpico{
+      
+    }
+    
+    .modal-dialog-scrollable .modal-body {
+      overflow-y:initial;
+    }
+    
+    .row {
+        --bs-gutter-x: 1.5rem;
+        --bs-gutter-y: 0;
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: calc(-1 * var(--bs-gutter-y));
+        margin-right: calc(-.5 * var(--bs-gutter-x));
+        margin-left: calc(-.5 * var(--bs-gutter-x));
+    }
+    
+    //https://sweetalert2.github.io/recipe-gallery/three-buttons-dialog.html
+    .my-actions { margin: 0 2em; }
+    .order-1 { order: 1; }
+    .order-2 { order: 2; }
+    .order-3 { order: 3; }
+    
+    .right-gap {
+      margin-right: auto;
+    }
+    
+    
+    
+    /* .modal:nth-of-type(even) {
+        z-index: 1062 !important;
+    }
+    .modal-backdrop.show:nth-of-type(even) {
+        z-index: 1061 !important;
+    } */
+    </style>

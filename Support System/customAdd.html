@@ -1,0 +1,78 @@
+<!-- MODAL FORM ADD RECORD ****************************************************-->
+<!-- LINE 23: Be sure to change the title and required pattern to match the institutional emails required. -->
+<!-- LINE 33: Be sure to change the title, length, and required pattern attributes. The required pattern should be a regular expression (RegEx). -->
+<!-- LINE 38-46: Be sure to change the dropdown options to include the values that you want. You can add as many as needed. -->
+<!-- LINE 52-56: Be sure to change the dropdown options here to the staff members that you want to include in the record creator. You can add as many as needed. -->
+
+<div class="modal" tabindex="-1" id="customAdd" >
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add a New Record</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div> 
+        <div class="modal-body">
+          <form class="was-validated">
+            <div class="row mt-2">
+                <div class="col">
+                  <label class="form-label">Name:</label>
+                  <input type="text" class="form-control form-control-sm" id="name_add" required>
+                </div>
+                <div class="col">
+                  <label class="form-label">Email:</label>
+                  <input type="text" title="Must be a INSTITUTION address" class="form-control form-control-sm" required pattern=".*INSTITUTION.edu" id="email_add" required>
+                </div>
+                <div class="col">
+                  <label class="form-label">Phone:</label>
+                  <input type="text" class="form-control form-control-sm" id="phone_add" required>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col">
+                  <label class="form-label">ID Number:</label>
+                  <input type="text" title="ID NUMBER CONSTRAINTS" required pattern="[Jj]00.{6}" maxlength="9" class="form-control form-control-sm" id="id_add" required>
+                </div>
+                <div class="col">
+                  <label class="form-label">Category:</label>
+                  <div class="form-group">
+                  <select class="form-control form-control-sm" id="cat_add">
+                      <option value="Canvas">Canvas</option>
+                      <option value="Consultation">Consultation</option>
+                      <option value="Panopto">Panopto</option>
+                      <option value="Zoom">Zoom</option>
+                      <option value="Proctoring">Proctoring</option>
+                      <option value="Third-Party Tools">Third-Party Tools</option>
+                      <option value="Other">Other</option>
+                  </select>
+                  </div>
+              </div>
+                <div class="col">
+                  <label class="form-label">Staff:</label>
+                  <div class="form-group">
+                  <select class="form-control form-control-sm" id="agent_add">
+                    <option value="Unassigned">Unassigned</option>
+                    <option value="Agent1">Agent 1</option>
+                    <option value="Agent2">Agent 2</option>
+                  </select>
+                  </div>
+                </div>
+            <div class="row mt-2">
+                <label class="form-label">Description:</legend>
+                <div class="form-group">
+                    <textarea id="desc_add" class="form-control form-control-sm" rows="6"></textarea>
+                </div>
+            </div>
+            </div>
+            <div style="text-align:right">
+              <input type="checkbox" id="email_yn" name="email_yn">
+              <label for="email_yn" style="margin-right: 15px; margin-bottom: 15px">Send Email?</label>
+            </div>
+          <div class="modal-footer">
+            <button type="reset" class="btn btn-primary mt-4" id="add-record-button">Add</button>
+          </div>
+          </div>
+          </form>              
+        </div>
+      </div>
+    </div>
+</div>

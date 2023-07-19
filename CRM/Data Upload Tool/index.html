@@ -1,0 +1,297 @@
+<!-- THINGS TO MODIFY -->
+<!-- Line 114 and Line 173: Under editorParams > values be sure to change these to the categories you want to use for different types of events
+Line 115 and Line 182: Make sure that the validator here contains the regular expression (RegEx) for your ID number type.
+Line 116-122 and Line 196-199: Make sure the tooltips reflect what you want the user to see as far as correct email domain type (e.g. email@institutionname.edu)
+Line 231 and Line 232: Make sure these values are the RegEx for the ID number constraints and the email address types respectively -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base target="_top">
+    <title>File Upload</title>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src=" https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js "></script>
+    <link href="https://unpkg.com/tabulator-tables@5.4.4/dist/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
+        <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <p style="font-size:1.5em"><strong>Only upload CSV files to this tool. CSV files must be in the format of: Date, Title, CEU Hours, Instructor, Instructional Method, idNumber.<strong></p>
+  <br>
+
+  <form id="uploadForm">
+    <label for="name">Name:</label>
+    <input type="text" name="text1" id="name">
+    <br>
+    <label for="email">Email:</label>
+    <input type="text" name="text2" id="email">
+    <br>
+    <input class="waves-effect waves-teal btn-flat" type="file" name="fileToUpload" id="fileToUpload">
+    <input class="btn waves-effect waves-light" type="button" value="Upload" onclick="clickButton()">
+  </form>
+
+    <!-- Loading progress bar -->
+    <div id="progress-bar" class="progress" style="display:none">
+        <div class="indeterminate"></div>
+    </div>
+
+    <!-- Tables with data -->
+    <p>Passing Data:</p>
+    <div class="mt-2" id="data-table"></div>
+    <p>Failed Data:</p>
+    <div class="mt-2" id="data-table2"></div>
+    <br>
+    <input id="button-area" style="display:none" type="button" value="Upload to Database" onclick="logData">
+    </body>
+        <script>
+        document.getElementById("button-area").addEventListener("click", logData);
+
+        const elements = {}
+        const collaterals = {}
+
+        function clickButton(){
+          loadingStart()
+          if(document.getElementById('fileToUpload').value != "") {
+              if(document.getElementById('name').value === ""){
+                  loadingEnd()
+                  var alrt = "Please include your name."
+                  var icon = 'error'
+                  sweetAlert(alrt,icon)
+              } else {
+                if (document.getElementById('email').value === ""){
+                  loadingEnd()
+                  var alrt = "Please include your email."
+                  var icon = 'error'
+                  sweetAlert(alrt,icon)
+                  
+                  } else {
+                      google.script.run.withSuccessHandler(function(result) {
+                        let jsonDataB = result.badData;
+                        let jsonDataG = result.goodData;
+
+                        loadTable(jsonDataB, jsonDataG)
+                        document.getElementById("button-area").style.display = 'block'
+                        loadingEnd()
+
+                        console.log(jsonDataB,jsonDataG)
+
+                        // Do something with jsonData and activeUser
+                      }).withFailureHandler(
+                      function(){
+                        loadingEnd()
+                        var alrt = "Upload error."
+                        var icon = 'error'
+                        sweetAlert(alrt,icon)}
+                    ).processForm(document.getElementById('uploadForm'));
+                  }
+              }
+          } else {
+            loadingEnd()
+            var alrt = "Please upload a document!"
+            var icon = 'error'
+            sweetAlert(alrt,icon)
+          }
+        }
+
+        function loadTable(jsonDataB, jsonDataG){
+                  elements.table = new Tabulator("#data-table", {
+                  data:jsonDataG, //assign data to table
+                  layout:"fitColumns",
+                  responsiveLayout:"hide",  //hide columns that dont fit on the table
+                  addRowPos:"top",          //when adding a new row, add it to the top of the table
+                  validationMode:"highlight",
+                  history:true,
+                  columns:[                 //define the table columns
+                    {title:"Date", field:"date", editor:"date", hozAlign:"left"},
+                    {title:"Title", field:"courseName", editor:"input", hozAlign:"left"},
+                    {title:"CEUH", field:"duration", editor:"number", hozAlign:"left", width:75},
+                    {title:"Instructor", field:"instructor", editor:"input", hozAlign:"left"},
+                    {title:"Method", field:"method", editor:"list", hozAlign:"left", editorParams:{values:["Traditional Face-to-Face","Web Online - Asynchronous", "Video Conference", "Web Blended", "Self Study", "Web Remote", "Web Hybrid"]}},
+                    {title:"ID #", field:"idNumber", editor:"input", hozAlign:"left", validator:"regex:/^J00\d{6}$/", width:85, editorParams:{
+                          elementAttributes:{title:"ID NUMBER CONSTRAINTS" // custom tooltip
+                          }}
+                      },
+                    {title:"Email", field:"email", editor:"input", hozAlign:"left",editorParams:{
+                          elementAttributes:{title:"Must be a INSTITUTION_DOMAIN address" // custom tooltip
+                          }}
+                    },
+                    {title:"Name", field:"attendeeName", editor:"input", hozAlign:"left", width:100}
+                  ]
+              });
+
+          collaterals.table = new Tabulator("#data-table2", {
+                  data:jsonDataB, //assign data to table
+                  layout:"fitColumns",
+                  responsiveLayout:"hide",  //hide columns that dont fit on the table
+                  addRowPos:"top",          //when adding a new row, add it to the top of the table
+                  validationMode:"highlight",
+                  history:true,
+                  columns:[                 //define the table columns
+                    {title:"Date", field:"date", editor:"date", hozAlign:"left", editorParams:{
+                      format:"MM/dd/yyyy"
+                    }, formatter:function(cell, formatterParams){
+                                var value = cell.getValue();
+                                if (value === "") {
+                                  cell.getElement().style.backgroundColor = "red";
+                                } else {
+                                  cell.getElement().style.backgroundColor = "";
+                                }
+                                return value;
+                              }},
+                    {title:"Title", field:"courseName", editor:"input", hozAlign:"left", formatter:function(cell, formatterParams){
+                                var value = cell.getValue();
+                                if (value === "") {
+                                  cell.getElement().style.backgroundColor = "red";
+                                } else {
+                                  cell.getElement().style.backgroundColor = "";
+                                }
+                                return value;
+                              }},
+                    {title:"CEUH", field:"duration", editor:"number", hozAlign:"left", width:75, formatter:function(cell, formatterParams){
+                                var value = cell.getValue();
+                                if (value === "") {
+                                  cell.getElement().style.backgroundColor = "red";
+                                } else {
+                                  cell.getElement().style.backgroundColor = "";
+                                }
+                                return value;
+                              }},
+                    {title:"Instructor", field:"instructor", editor:"input", hozAlign:"left", formatter:function(cell, formatterParams){
+                                var value = cell.getValue();
+                                if (value === "") {
+                                  cell.getElement().style.backgroundColor = "red";
+                                } else {
+                                  cell.getElement().style.backgroundColor = "";
+                                }
+                                return value;
+                              }},
+                    {title:"Method", field:"method", editor:"list", hozAlign:"left", editorParams:{values:["Traditional Face-to-Face","Web Online - Asynchronous", "Video Conference", "Web Blended", "Self Study", "Web Remote", "Web Hybrid"]}, formatter:function(cell, formatterParams){
+                                var value = cell.getValue();
+                                if (value === "") {
+                                  cell.getElement().style.backgroundColor = "red";
+                                } else {
+                                  cell.getElement().style.backgroundColor = "";
+                                }
+                                return value;
+                              }},
+                    {title:"ID #", field:"idNumber", editor:"input", hozAlign:"left", validator:"regex:/^J00\d{6}$/", width:85, editorParams:{
+                          elementAttributes:{title:"ID NUMBER CONSTRAINTS" // custom tooltip}
+                          }},formatter:function(cell, formatterParams){
+                                var value = cell.getValue();
+                                var regex = /^J00\d{6}$/;
+                                if (value === "" || !regex.test(value)) {
+                                  cell.getElement().style.backgroundColor = "red";
+                                } else {
+                                  cell.getElement().style.backgroundColor = "";
+                                }
+                                return value;
+                              }
+                      },
+                    {title:"Email", field:"email", editor:"input", hozAlign:"left",editorParams:{
+                          elementAttributes:{title:"Must be a INSTITUTION_DOMAIN address" // custom tooltip}
+                          }}, formatter:function(cell, formatterParams) {
+                              var value = cell.getValue();
+                              if (value.indexOf("INSTITUTION_DOMAIN") === -1) {
+                                cell.getElement().style.backgroundColor = "red";
+                              } else {
+                                cell.getElement().style.backgroundColor = "";
+                              }
+                              return value;
+                            }
+                    },
+                    {title:"Name", field:"attendeeName", editor:"input", hozAlign:"left", width:100, formatter:function(cell, formatterParams){
+                                var value = cell.getValue();
+                                if (value === "") {
+                                  cell.getElement().style.backgroundColor = "red";
+                                } else {
+                                  cell.getElement().style.backgroundColor = "";
+                                }
+                                return value;
+                              }},
+                    {title:"newData", field:"newData", visible:false}
+                  ]
+              });
+        }
+
+        function logData(){
+          var array = collaterals.table.getData();
+          var array2 = elements.table.getData();
+
+          var userName = document.getElementById('name').value
+          var userEmail = document.getElementById('email').value
+
+
+          const returnData = [...array, ...array2]
+
+          const regexID = /^J00\d{6}$/;
+          const regexEmail = /^[^\s@]+@(?:jagmail\.|health\.)?southalabama\.edu$/;
+
+          var errorFound = false;
+            for (var i = 0; i < returnData.length; i++){
+              if(returnData[i].date === '' || returnData[i].courseName === '' || returnData[i].duration === '' || returnData[i].instructor === '' || returnData[i].method === '' || !regexID.test(returnData[i].idNumber) || !regexEmail.test(returnData[i].email) || returnData[i].attendeeName === ''){
+                errorFound = true;
+                break;
+              }
+            }
+            if (errorFound) {
+                var alrt = "Data not formatted correctly."
+                var icon = 'error'
+                sweetAlert(alrt,icon)
+            } else {
+              loadingStart();
+              console.log(returnData);
+              google.script.run.withSuccessHandler(function(result) {
+                loadingEnd();
+                var alrt = "Successfully uploaded!"
+                var icon = 'success'
+                sweetAlert(alrt,icon)
+              }).withFailureHandler(function() {
+                loadingEnd();
+                var alrt = "Upload failed."
+                var icon = 'error'
+                sweetAlert(alrt,icon)
+              }).writeToSheet(returnData, userName, userEmail);
+            }
+        }
+
+// #######################Alerts and Loading Bars#############################
+        function loadingStart(){
+          document.getElementById("progress-bar").style.display = 'block'
+        };
+
+        function loadingEnd(){
+            document.getElementById("progress-bar").style.display = 'none';
+        };
+
+        function sweetAlert(alrt, icon){
+          let timerInterval
+          Swal.fire({
+            title: alrt,
+            html: '',
+            icon: icon,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: () => {
+              Swal.showLoading()
+              const b = Swal.getHtmlContainer().querySelector('b')
+              timerInterval = setInterval(() => {
+                b.textContent = Swal.getTimerLeft()
+              }, 100)
+            },
+            willClose: () => {
+              clearInterval(timerInterval)
+            }
+          }).then((result) => {
+            /* Read more about handling dismissals below */
+            if (result.dismiss === Swal.DismissReason.timer) {
+              console.log('I was closed by the timer')
+            }
+          })
+        }
+      </script>   
+</html>

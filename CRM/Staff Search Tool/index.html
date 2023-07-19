@@ -1,0 +1,181 @@
+<!-- LINE 66-70: Be sure to change the relevant characteristics of these fields, including the length, tooltip, and pattern. You may choose to delete these attributes as well.  -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include("css"); ?>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
+    <div class="quiz-container">
+          <button class="requestButton" id="requestRecord" type="submit">Request Transcript</button>
+        <div id="myDiv"></div>
+        <?!= include("table"); ?>
+    </div>
+    <script>
+    window.addEventListener("load", getUserID);
+    document.getElementById("requestRecord").addEventListener("click",event => {
+      // event.preventDefault();
+      (async () => {
+      const { value: formValues } = await Swal.fire({
+        title: 'Transcript Request Form',
+        html:
+          '<label>Name:</label><input id="swal-input1" class="swal2-input"><br>' +
+          '<label>Email:</label><input id="swal-input2" class="swal2-input">',
+        focusConfirm: false,
+        preConfirm: () => {
+          var name = document.getElementById('swal-input1').value
+          var email = document.getElementById('swal-input2').value
+
+          if (name === '' || email === '') {
+            Swal.showValidationMessage('You need to write something!')
+          } else {
+          return [
+            name,
+            email
+          ]
+          }
+        }
+      })
+
+      if (formValues) {
+        const idNumber = document.getElementById("name-input").value;
+        Swal.fire('Request Submitted')
+        emailPass(formValues, idNumber)
+      }
+
+      })();
+    });
+
+    function emailPass(formValues, idNumber) {
+      const name = formValues[0]
+      const email = formValues[1]
+      console.log(name)
+      console.log(email)
+      google.script.run.withSuccessHandler(()=>{
+        console.log("Email Successfully Sent")
+      }).withFailureHandler((er)=>{
+        console.log("Email Failed to Send")
+      }).breakToJSON(name, email, idNumber)
+    }
+
+    function getUserID() {
+      const myDiv = document.getElementById("myDiv");
+      myDiv.innerHTML = `
+        <form class="centeredForm" id="name-form">
+          <label for="name-input">Enter ID Number:</label>
+          <input class="groupBox" type="text" id="name-input" title="INCLUDE TOOLTIP CONSTRAINTS, LINE 68" maxlength="9" required pattern="INCLUDE PATTERN HERE (OR DELETE)" required>
+          <button type="submit">Submit</button>
+        </form>
+      `;
+      const nameForm = document.getElementById("name-form");
+      nameForm.addEventListener("submit", event => {
+        event.preventDefault(); // prevent page refresh
+        const idNumber = document.getElementById("name-input").value;
+        clearTable();
+        getData(idNumber);
+      });
+    }
+
+    function clearTable() {
+        console.log("clearing table")
+      var Table = document.getElementById("matchData");
+      Table.innerHTML = "";
+    }
+
+    function getData(idNumber){
+        // console.log("getData() called");
+        google.script.run.withSuccessHandler(jsonData => {
+          const userInformation = jsonData.map(userInfo => {
+            const { date, title, hours, instructor, method } = userInfo;
+            return { date, title, hours, instructor, method };
+          });
+          presentData(userInformation)
+        }).withFailureHandler(er => {
+          console.log('Failed to retrieve data')
+        }).parseDataToJSON(idNumber)
+    }
+
+    function presentData(userInformation){
+      if (userInformation.length === 0){
+          fixAlert()
+      } else {
+        // console.log("presentData() called")
+        function drawTable(tbody) {
+            var tr, td;
+            tbody = document.querySelector('tbody');
+            // Add table headers
+            if (tbody.rows.length === 0) {
+                tr = tbody.insertRow(0);
+                td = tr.insertCell(0);
+                td.style.textAlign = "center";
+                td.style.fontWeight = "bold";
+                td.innerHTML = "Date";
+                td = tr.insertCell(1);
+                td.style.textAlign = "center";
+                td.style.fontWeight = "bold";
+                td.innerHTML = "Hours";
+                td = tr.insertCell(2);
+                td.style.textAlign = "center";
+                td.style.fontWeight = "bold";
+                td.innerHTML = "Title";
+                td = tr.insertCell(3);
+                td.style.textAlign = "center";
+                td.style.fontWeight = "bold";
+                td.innerHTML = "Instructor";
+                td = tr.insertCell(4);
+                td.style.textAlign = "center";
+                td.style.fontWeight = "bold";
+                td.innerHTML = "Method";
+            }
+            // loop through data source
+            for (var i = 0; i < userInformation.length; i++) {
+                tr = tbody.insertRow(tbody.rows.length);
+                td = tr.insertCell(tr.cells.length);
+                td.innerHTML = userInformation[i].date;
+                td = tr.insertCell(tr.cells.length);
+                td.style.textAlign = "center";
+                td.innerHTML = userInformation[i].hours;
+                td = tr.insertCell(tr.cells.length);
+                td.innerHTML = userInformation[i].title;
+                td = tr.insertCell(tr.cells.length);
+                td.innerHTML = userInformation[i].instructor;
+                td = tr.insertCell(tr.cells.length);
+                td.style.textAlign = "center";
+                td.innerHTML = userInformation[i].method
+            }
+        }
+        drawTable("matchData");
+      }
+    }
+
+    function fixAlert(){
+    let timerInterval
+    Swal.fire({
+      icon: 'error',
+      title: 'Oh no!',
+      html: 'No records have been found.',
+      timer: 3500,
+      timerProgressBar: true,
+      didOpen: () => {
+        // Swal.showLoading()
+        const b = Swal.getHtmlContainer().querySelector('b')
+        timerInterval = setInterval(() => {
+          b.textContent = Swal.getTimerLeft()
+        }, 100)
+      },
+      showConfirmButton: false,
+      willClose: () => {
+        clearInterval(timerInterval)
+      }
+    }).then((result) => {
+      /* Read more about handling dismissals below */
+      if (result.dismiss === Swal.DismissReason.timer) {
+        // console.log('I was closed by the timer')
+      }
+    })
+  }
+      </script>
+  </body>
+</html>

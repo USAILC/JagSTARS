@@ -1,0 +1,187 @@
+<!-- Line 164: Change this to the name of your department/instition. -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include("css"); ?>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
+    <div class="quiz-container">
+          <h1 style="text-align: center">Professional Development Transcript Viewer</h1>
+          <button style="text-align:center; display: block" id="setupButton" type="submit">Search records?</button>
+          <button class="requestButton" id="requestRecord" type="submit" style="display: none">Request Transcript</button>
+          <div id="specButton"></div>
+        <?!= include("table"); ?>
+    </div>
+    <script>
+    // window.addEventListener("load", setScene);
+    document.getElementById("requestRecord").addEventListener("click",event => {
+      requestTranscript()
+    });
+    document.getElementById("setupButton").addEventListener("click",event => {
+      getData()
+    });
+
+    function requestTranscript(){
+          Swal.fire({
+              title: 'Send email?',
+              text: "A copy of your transcript will be sent to the email: " + activeUser,
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Yes'
+            }).then((result) => {
+              if (result.isConfirmed) {
+                console.log("confirmation")
+                google.script.run.withSuccessHandler(()=>{
+                  console.log("Process Successfully Started")
+                }).withFailureHandler((er)=>{
+                  console.log("Process failed")
+                }).breakToJSON()
+                Swal.fire(
+                  'Sent!',
+                  'Your transcript is on its way.',
+                  'success'
+                )
+              }
+            })
+          };
+
+    function clearTable() {
+        console.log("clearing table")
+      var Table = document.getElementById("matchData");
+      Table.innerHTML = "";
+    }
+
+    function getData(){
+        // console.log("getData() called");
+        var sButton = document.getElementById('setupButton')
+        sButton.style.display = 'none'
+        google.script.run.withSuccessHandler(function(result) {
+          let jsonData = result.jsonData;
+          activeUser = result.activeUser;
+
+          const userInformation = jsonData.map(userInfo => {
+            const { date, title, hours, instructor, method } = userInfo;
+            return { date, title, hours, instructor, method };
+          });
+          presentData(userInformation)
+
+          // Do something with jsonData and activeUser
+        }).parseDataToJSON();
+    }
+
+    function presentData(userInformation){
+      if (userInformation.length === 0){
+          fixAlert()
+      } else {
+        var rButton = document.getElementById('requestRecord')
+        rButton.style.display = 'block'
+        // console.log("presentData() called")
+        function drawTable(tbody) {
+            var tr, td;
+            tbody = document.querySelector('tbody');
+            // Add table headers
+            if (tbody.rows.length === 0) {
+                tr = tbody.insertRow(0);
+                td = tr.insertCell(0);
+                td.style.textAlign = "center";
+                td.style.fontWeight = "bold";
+                td.innerHTML = "Date";
+                td = tr.insertCell(1);
+                td.style.textAlign = "center";
+                td.style.fontWeight = "bold";
+                td.innerHTML = "Hours";
+                td = tr.insertCell(2);
+                td.style.textAlign = "center";
+                td.style.fontWeight = "bold";
+                td.innerHTML = "Title";
+                td = tr.insertCell(3);
+                td.style.textAlign = "center";
+                td.style.fontWeight = "bold";
+                td.innerHTML = "Instructor";
+                td = tr.insertCell(4);
+                td.style.textAlign = "center";
+                td.style.fontWeight = "bold";
+                td.innerHTML = "Method";
+            }
+            // loop through data source
+            for (var i = 0; i < userInformation.length; i++) {
+                tr = tbody.insertRow(tbody.rows.length);
+                td = tr.insertCell(tr.cells.length);
+                td.innerHTML = userInformation[i].date;
+                td = tr.insertCell(tr.cells.length);
+                td.style.textAlign = "center";
+                td.innerHTML = userInformation[i].hours;
+                td = tr.insertCell(tr.cells.length);
+                td.innerHTML = userInformation[i].title;
+                td = tr.insertCell(tr.cells.length);
+                td.innerHTML = userInformation[i].instructor;
+                td = tr.insertCell(tr.cells.length);
+                td.style.textAlign = "center";
+                td.innerHTML = userInformation[i].method
+            }
+        }
+        drawTable("matchData");
+      }
+    }
+
+    function fixAlert(){
+    let timerInterval
+    Swal.fire({
+      icon: 'error',
+      title: 'Oh no!',
+      html: 'No records have been found.',
+      timer: 3500,
+      timerProgressBar: true,
+      didOpen: () => {
+        // Swal.showLoading()
+        const b = Swal.getHtmlContainer().querySelector('b')
+        timerInterval = setInterval(() => {
+          b.textContent = Swal.getTimerLeft()
+        }, 100)
+      },
+      showConfirmButton: false,
+      willClose: () => {
+        clearInterval(timerInterval)
+      }
+    }).then((result) => {
+      /* Read more about handling dismissals below */
+      if (result.dismiss === Swal.DismissReason.timer) {
+        // console.log('I was closed by the timer')
+      }
+    })
+  }
+
+    function requestAlert(){
+    let timerInterval
+    Swal.fire({
+      icon: 'error',
+      title: 'Nothing to send!',
+      html: 'No records have been found. Please contact DEPARTMENT NAME.',
+      timer: 3500,
+      timerProgressBar: true,
+      didOpen: () => {
+        // Swal.showLoading()
+        const b = Swal.getHtmlContainer().querySelector('b')
+        timerInterval = setInterval(() => {
+          b.textContent = Swal.getTimerLeft()
+        }, 100)
+      },
+      showConfirmButton: false,
+      willClose: () => {
+        clearInterval(timerInterval)
+      }
+    }).then((result) => {
+      /* Read more about handling dismissals below */
+      if (result.dismiss === Swal.DismissReason.timer) {
+        // console.log('I was closed by the timer')
+      }
+    })
+  }
+    </script>
+  </body>
+</html>
