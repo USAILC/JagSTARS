@@ -92,6 +92,10 @@ EMAIL AND MESSAGING FUNCTIONS WILL NOT WORK UNTIL OTHER TEMPLATES ARE UPDATED --
       // document.getElementById("app").addEventListener("input",inputEventHandler);
       document.getElementById("customAdd").addEventListener("click",clickEventHandler);
 
+      var agentValue = document.getElementById("selectAgent").value
+      sessionStorage.setItem("agent",agentValue)
+      console.log(agentValue)
+
       function pageLoad() {
         elements.alerts = document.getElementById("alerts");
         elements.search = document.getElementById("searchUser");
@@ -172,18 +176,6 @@ EMAIL AND MESSAGING FUNCTIONS WILL NOT WORK UNTIL OTHER TEMPLATES ARE UPDATED --
               visible:false}
               ],
           })
-
-          // Doesn't work, but groupChangeVisibility does.
-          elements.table.on("groupClick", function(e, group){
-          //group - group component
-          //visible - is group visible (true = visible, false = hidden)
-          // var test = group._group.key
-          //   if (test === "Closed"){
-          //   loadingStart()
-          //   setTimeout(loadingEnd, 3000)
-          //   }
-          console.log("clicked")
-          });
           loadingEnd()
 
 
@@ -239,15 +231,8 @@ EMAIL AND MESSAGING FUNCTIONS WILL NOT WORK UNTIL OTHER TEMPLATES ARE UPDATED --
                           elements.alerts.textContent = "Changes saved!"
                           alerts.style.color = "white";
                           clearAlerts(elements.alerts)
-                          elements.table.setFilter([[
-                            // {field:"idNumber",type: "like",value: ''},
-                            // {field:"Email",type: "like",value: ''},
-                            // {field:"Name",type: "like",value: ''},
-                            // {field:"Description",type: "like",value: ''},
-                            // {field:"Comments",type: "like",value: ''},
-                            {field: "Assigned", type:"like",value: ''}]])
-                          elements.table.replaceData(jsdata)
-                          elements.table.setFilter("Assigned","like",agentFilterInner)
+                          elements.table.updateData(jsdata)
+                          elements.table.refreshFilter()
                           })
                           .withFailureHandler((er)=>{
                           elements.alerts.textContent = "Failed to save!"
@@ -276,17 +261,8 @@ EMAIL AND MESSAGING FUNCTIONS WILL NOT WORK UNTIL OTHER TEMPLATES ARE UPDATED --
                           elements.alerts.textContent = "Changes saved!"
                           alerts.style.color = "white";
                           clearAlerts(elements.alerts)
-                          // elements.table.replaceData(jsdata)
-                          // reLoad()
-                          elements.table.setFilter([[
-                            // {field:"idNumber",type: "like",value: ''},
-                            // {field:"Email",type: "like",value: ''},
-                            // {field:"Name",type: "like",value: ''},
-                            // {field:"Description",type: "like",value: ''},
-                            // {field:"Comments",type: "like",value: ''},
-                            {field: "Assigned", type:"like",value: ''}]])
-                          elements.table.replaceData(jsdata)
-                          elements.table.setFilter("Assigned","like",agentFilterInner)
+                          elements.table.updateData(jsdata)
+                          elements.table.refreshFilter()
                           })
                           .withFailureHandler((er)=>{
                           elements.alerts.textContent = "Failed to save!"
@@ -343,6 +319,8 @@ EMAIL AND MESSAGING FUNCTIONS WILL NOT WORK UNTIL OTHER TEMPLATES ARE UPDATED --
                           elements.alerts.textContent = "Changes saved!"
                           alerts.style.color = "white";
                           clearAlerts(elements.alerts)
+                          elements.table.updateData(jsdata)
+                          elements.table.refreshFilter()
                           })
                           .withFailureHandler((er)=>{
                             elements.alerts.textContent = "Failed to save!"
@@ -380,16 +358,8 @@ EMAIL AND MESSAGING FUNCTIONS WILL NOT WORK UNTIL OTHER TEMPLATES ARE UPDATED --
                           elements.alerts.textContent = "Changes saved!"
                           alerts.style.color = "white";
                           clearAlerts(elements.alerts)
-                          // reLoad()
-                          elements.table.setFilter([[
-                            // {field:"idNumber",type: "like",value: ''},
-                            // {field:"Email",type: "like",value: ''},
-                            // {field:"Name",type: "like",value: ''},
-                            // {field:"Description",type: "like",value: ''},
-                            // {field:"Comments",type: "like",value: ''},
-                            {field: "Assigned", type:"like",value: ''}]])
-                          elements.table.replaceData(jsdata)
-                          elements.table.setFilter("Assigned","like",agentFilterInner)
+                          elements.table.updateData(jsdata)
+                          elements.table.refreshFilter()
                           })
                           .withFailureHandler((er)=>{
                           elements.alerts.textContent = "Failed to save!"
@@ -401,15 +371,6 @@ EMAIL AND MESSAGING FUNCTIONS WILL NOT WORK UNTIL OTHER TEMPLATES ARE UPDATED --
                         function loadNewData(jsdata){
 
                         }
-
-                      // if(["Assigned"].includes(field)){
-                      //   google.script.run
-                      //     .withSuccessHandler(()=>{
-                      //     })
-                      //     .withFailureHandler((er)=>{
-                      //     })
-                      //   .sendPostMessage({id: id, val: val, field: field})}
-
                         google.script.run.withSuccessHandler(()=>{
                           console.log("Logged")
                         }).withFailureHandler((er)=>{
