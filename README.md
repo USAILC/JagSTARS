@@ -8,6 +8,7 @@ JAGSTARS comprises a suite of web-based applications built on Google Workspace t
    * Client Relationship Management (CRM) Database: Maintains professional development records.
    * Data Upload Tool: Easily adds event data to the CRM, validated before inclusion.
    * Report Generation Tool: Provides insights into individual and departmental participation.
+       * The College/Department report generator is still a spreadsheet application. Plans for the future include converting this to a web application, much like the individual transcript generators. Here is the [Google Sheets template link](https://docs.google.com/spreadsheets/d/1n7EATBvJHe01wUsn_Lx-_RoWitr9PxCfe4nHg-PZX8U/template/preview).
    * Support Ticket Application: Tracks day-to-day staff interactions with clients.
 
 JAGSTARS employs relational Google Sheets for data storage, associating user records with specific professional development events or support requests through email addresses or unique employee IDs. The support ticket system, designed as a single-page web application, implements different workflow stages, filtering, and notification features, streamlining ticket processing and communication.
