@@ -65,7 +65,7 @@ You can choose to have a separate sheet that houses staff/faculty information, w
 <summary>Support System Tool (Ticketing)</summary>
 <br>
 
-Create a Google Sheet and create columns in the following order: RecordNumber, Date, Time, Email, Name, Phone, idNumber, Category, Description, Status, Assigned, Comments.
+1. Create a Google Sheet and create columns in the following order: RecordNumber, Date, Time, Email, Name, Phone, idNumber, Category, Description, Status, Assigned, Comments.
 2. Go to Extensions
 3. Select 'Apps Script'
 4. Rename Apps Script file to a descriptive name
@@ -80,7 +80,7 @@ Create a Google Sheet and create columns in the following order: RecordNumber, D
 13. In customAdd.html on lines 38-46, be sure to change the dropdown options to the support services you offer.
 14. In customAdd.html on lines 52-56, be sure to change the dropdown options to the support staff members names.
 15. In the email templates, be sure to update the text to reflect what you would like to be displayed in automatic emails.
-16. To deploy, select 'Deploy' in the Apps Script editor to open a testing URL, or publish a version of the app to get a stable URL.
+16. To deploy, select 'Deploy' in the Apps Script editor to open a testing URL, or publish a version of the app to get a stable URL. 
 
 </details>
 
