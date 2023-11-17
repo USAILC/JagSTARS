@@ -24,8 +24,8 @@ You can choose to have a separate sheet that houses staff/faculty information, w
 <summary>Data Upload Tool</summary>
 <br>
 
- 1. List item
- 2. Open a Google Sheet
+ 1. Open a Google Sheet
+ 2. (A Google Sheet is not strictly necessary, as you can go straight to Apps Script by visiting https://script.google.com/)
  3. Go to Extensions
  4. Select 'Apps Script'
  5. Rename Apps Script file to a descriptive name
@@ -36,7 +36,8 @@ You can choose to have a separate sheet that houses staff/faculty information, w
  10. Replace the value 'regexID' in line 40 with a regular expression (RegEx) that matches your SIS or ID pattern (recommend using regex101.com)
  11. Replace value 'regexEmail' in line 41 with your email subdomains (e.g. health. or faculty.) and your primary subdomain (e.g. exampleuniversity.com). This filters allowed email addresses.
  12. Replace value 'fileID' in line 75 with the spreadsheet that holds your professional development data (ID is the part of the url with a string of numbers and letters, similar to the folder ID above).
- 13. Select 'Deploy' to open a testing URL, or publish a version of the app to get a stable URL.
+ 13. Click 'Run' in the Apps Script editor and agree to the permissions popup.
+ 14. Select 'Deploy' to open a testing URL, or publish a version of the app to get a stable URL.
 </details>
 
 <details>
@@ -56,7 +57,8 @@ You can choose to have a separate sheet that houses staff/faculty information, w
 11. In code.gs on lines 133-134, be sure to add the categories that you want to include on your transcript (be sure these are present in the actual spreadsheet)
 12. In the EmailTemplate.html file, be sure to add the text that you want to be included in automatic emails.
 13. In the index.html file on line 164, be sure to add the name of your department/institution.
-14. Select 'Deploy' to open a testing URL, or publish a version of the app to get a stable URL.
+14. Click 'Run' in the Apps Script editor and agree to the permissions popup.
+15. Select 'Deploy' to open a testing URL, or publish a version of the app to get a stable URL.
 
 </details>
 
@@ -80,7 +82,8 @@ You can choose to have a separate sheet that houses staff/faculty information, w
 13. In customAdd.html on lines 38-46, be sure to change the dropdown options to the support services you offer.
 14. In customAdd.html on lines 52-56, be sure to change the dropdown options to the support staff members names.
 15. In the email templates, be sure to update the text to reflect what you would like to be displayed in automatic emails.
-16. To deploy, select 'Deploy' in the Apps Script editor to open a testing URL, or publish a version of the app to get a stable URL. 
+16. Click 'Run' in the Apps Script editor and agree to the permissions popup.
+17. To deploy, select 'Deploy' in the Apps Script editor to open a testing URL, or publish a version of the app to get a stable URL. 
 
 </details>
 
