@@ -1,10 +1,5 @@
 <!-- MODAL FORM ADD RECORD ****************************************************-->
-<!-- LINE 23: Be sure to change the title and required pattern to match the institutional emails required. -->
-<!-- LINE 33: Be sure to change the title, length, and required pattern attributes. The required pattern should be a regular expression (RegEx). -->
-<!-- LINE 38-46: Be sure to change the dropdown options to include the values that you want. You can add as many as needed. -->
-<!-- LINE 52-56: Be sure to change the dropdown options here to the staff members that you want to include in the record creator. You can add as many as needed. -->
-
-<div class="modal" tabindex="-1" id="customAdd" >
+<div class="modal" tabindex="-1" id="customAdd" data-bs-backdrop="static" >
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -12,15 +7,17 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div> 
         <div class="modal-body">
-          <form class="was-validated">
+          <form id="addRecordForm" class="was-validated">
             <div class="row mt-2">
                 <div class="col">
-                  <label class="form-label">Name:</label>
-                  <input type="text" class="form-control form-control-sm" id="name_add" required>
+                  <label class="form-label" for="name_add">Name:</label>
+                  <input list="nameOptions" type="text" class="form-control form-control-sm" id="name_add" name="name_add" required>
+                  <datalist id="nameOptions"></datalist>
                 </div>
                 <div class="col">
-                  <label class="form-label">Email:</label>
-                  <input type="text" title="Must be a INSTITUTION address" class="form-control form-control-sm" required pattern=".*INSTITUTION.edu" id="email_add" required>
+                  <label class="form-label" for="email_add">Email:</label>
+                  <input list="emailOptions" type="text" title="Must be a southalabama.edu address" class="form-control form-control-sm" required pattern=".*[sS][oO][uU][tT][hH][aA][lL][aA][bB][aA][mM][aA]\.[eE][dD][uU]" id="email_add" name="email_add" required>
+                  <datalist id="emailOptions"></datalist>
                 </div>
                 <div class="col">
                   <label class="form-label">Phone:</label>
@@ -29,8 +26,9 @@
             </div>
             <div class="row mt-2">
                 <div class="col">
-                  <label class="form-label">ID Number:</label>
-                  <input type="text" title="ID NUMBER CONSTRAINTS" required pattern="[Jj]00.{6}" maxlength="9" class="form-control form-control-sm" id="id_add" required>
+                  <label class="form-label" for="jag_add">Jag Number:</label>
+                  <input list="jagOptions" type="text" title="Include J00; Must be nine characters" required pattern="[Jj]00.{6}" maxlength="9" class="form-control form-control-sm" id="jag_add" name="jag_add" required>
+                  <datalist id="jagOptions"></datalist>
                 </div>
                 <div class="col">
                   <label class="form-label">Category:</label>
@@ -41,6 +39,7 @@
                       <option value="Panopto">Panopto</option>
                       <option value="Zoom">Zoom</option>
                       <option value="Proctoring">Proctoring</option>
+                      <option value="Studio">Studio</option>
                       <option value="Third-Party Tools">Third-Party Tools</option>
                       <option value="Other">Other</option>
                   </select>
@@ -50,9 +49,8 @@
                   <label class="form-label">Staff:</label>
                   <div class="form-group">
                   <select class="form-control form-control-sm" id="agent_add">
-                    <option value="Unassigned">Unassigned</option>
-                    <option value="Agent1">Agent 1</option>
-                    <option value="Agent2">Agent 2</option>
+                    <option value="Unassigned" selected>Unassigned</option>
+                      <!-- ADD OPTIONS HERE IN THE SAME FORMAT AS UNASSIGNED -->
                   </select>
                   </div>
                 </div>
@@ -61,6 +59,9 @@
                 <div class="form-group">
                     <textarea id="desc_add" class="form-control form-control-sm" rows="6"></textarea>
                 </div>
+                <p>Upload an Attachment</p>
+                <input type="file" class="uploader">
+                <div class="output"></div>
             </div>
             </div>
             <div style="text-align:right">
@@ -68,7 +69,7 @@
               <label for="email_yn" style="margin-right: 15px; margin-bottom: 15px">Send Email?</label>
             </div>
           <div class="modal-footer">
-            <button type="reset" class="btn btn-primary mt-4" id="add-record-button">Add</button>
+            <button type="button" class="btn btn-primary mt-4" id="add-record-button">Add</button>
           </div>
           </div>
           </form>              
