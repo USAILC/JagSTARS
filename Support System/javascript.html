@@ -1,0 +1,824 @@
+<script>
+//By Sean Stalley
+//Debugging and testing by Jason Smith
+//Created at the Innovation in Learning Center at the University of South Alabama
+//2023
+//Refactored with suggestions from Gemini
+/**
+ * ===================================================================
+ * GLOBAL CONSTANTS & APP STATE
+ * ===================================================================
+ */
+
+const STAFF_NAMES = [
+  "John S.", "Jane D.", "Unassigned"
+];
+
+const TOPIC_NAMES = [
+  "Canvas", "Consultation", "Panopto", "Zoom", "Proctoring", 
+  "Studio", "Third-Party Tools", "Other"
+];
+
+// App-wide elements object
+const elements = {};
+let jagModal = ''; // Holds the JagNumber for the PD modal
+let tabulatorInstance = null; // Will hold the single Tabulator table instance
+
+/**
+ * ===================================================================
+ * APP INITIALIZATION
+ * ===================================================================
+ */
+
+document.addEventListener("DOMContentLoaded", pageLoad);
+
+function pageLoad() {
+  // Store references to key elements
+  elements.alerts = document.getElementById("alerts");
+  elements.search = document.getElementById("searchUser");
+  elements.searching = document.getElementById("selectAgent");
+  elements.catsearch = document.getElementById("selectTopic");
+  elements.recsearch = document.getElementById("searchRecord");
+  elements.loadingSpinner = document.getElementById("loading");
+
+  // Dynamically populate dropdowns from constants
+  populateDropdown('selectAgent', STAFF_NAMES, 'All');
+  populateDropdown('selectTopic', TOPIC_NAMES, 'All');
+
+  // --- Attach Specific Button Click Listeners ---
+  // This avoids conflicts with Tabulator's event system
+  
+  // Modal buttons (these elements are in your included files)
+  document.getElementById('edit-record-button').addEventListener('click', editRecord);
+  document.getElementById('add-record-button').addEventListener('click', checkIsValid);
+  document.getElementById('pd-access').addEventListener('click', () => {
+    clearTable();
+    pullPD();
+  });
+
+  // Top navigation bar buttons
+  document.getElementById('open-form-record-button').addEventListener('click', openFormRecord);
+  document.getElementById('party-button').addEventListener('click', partyNyan);
+  document.getElementById('refresh').addEventListener('click', (e) => {
+    // Find the icon within the button that was clicked
+    const icon = e.currentTarget.querySelector('i');
+    if (icon) {
+      icon.classList.add('fa-spin');
+    }
+    refreshTable();
+  });
+
+  // Attach input event listeners
+  elements.search.addEventListener("input", searchUser);
+  elements.searching.addEventListener("input", selectAgent);
+  elements.catsearch.addEventListener("input", selectTopic);
+  elements.recsearch.addEventListener("input", searchRecord);
+  
+  // Restore agent filter from persistence (if any)
+  var tempData = localStorage.getItem("tabulator-data-table-filter");
+  if (tempData && tempData.length > 0) {
+    try {
+      var tempArray = JSON.parse(tempData);
+      var agentOuterFilter = tempArray[0].value;
+      if (agentOuterFilter != null) {
+        elements.searching.value = agentOuterFilter;
+      } else {
+        localStorage.clear();
+        elements.searching.value = "";
+      }
+    } catch (e) {
+      console.error("Failed to parse filter persistence:", e);
+      localStorage.clear();
+    }
+  }
+
+  // --- INITIALIZE TABULATOR (ONCE) ---
+  initializeTable();
+
+  // --- PERFORM INITIAL DATA LOAD ---
+  loadingStart();
+  loadData();
+}
+
+
+/**
+ * ===================================================================
+ * DATA LOADING & TABLE SETUP
+ * ===================================================================
+ */
+
+/**
+ * Creates the Tabulator instance ONE TIME on page load.
+ */
+function initializeTable() {
+  tabulatorInstance = new Tabulator("#data-table", {
+    data: [], // Start with empty data, will be populated by loadData()
+    layout: "fitColumns",
+    height:"100%",
+    
+    // --- THIS IS THE FIX (OPTION 2) ---
+    pagination: true,       // <-- Turns on pagination
+    paginationSize: 50,     // <-- Rows per page (You can tune this to 25, 50, or 100)
+    paginationMode: "local",  // <-- Paginates data after it's loaded from Google
+    // ----------------------------------
+
+    groupBy: "Status",
+    groupValues: [["New", "Open", "Processing", "Closed"]],
+    groupToggleElement: "header",
+    groupStartOpen: function(value, count, data, group) {
+      return value !== "Closed"; //Keeps closed tickets collapsed
+    },
+    persistence: {
+      filter: true, //persist filters
+    },
+    columns: [ //Define Table Columns
+      { title: "Record #", field: "RecordNumber", hozAlign: "right", width: 108 },
+      { title: "Date", field: "Date", hozAlign: "left", width: 90, sorter: "date", sorterParams: { format: "D" } },
+      { title: "Time", field: "Time", width: 90, sorter: "time", sorterParams: { format: "tt" } },
+      { title: "Category", field: "Category", hozAlign: "left", width: 121, headerFilter: true },
+      { title: "Name", field: "Name", hozAlign: "left", width: 175 },
+      { title: "Email", field: "Email", hozAlign: "left", visible: false },
+      { title: "Phone", field: "Phone", hozAlign: "left", visible: false },
+      { title: "Jag Number", field: "JagNumber", hozAlign: "center", width: 100 },
+      { title: "Description", field: "Description", hozAlign: "left", visible: true },
+      { title: "Status", field: "Status", editor: "list", hozAlign: "left", editorParams: { values: ["New", "Open", "Processing", "Closed", "Cancelled"] }, width: 100 },
+      { 
+        title: "Assignee", 
+        field: "Assigned", 
+        editor: "list", 
+        hozAlign: "left", 
+        editorParams: { 
+          values: STAFF_NAMES, // Use constant
+          autocomplete: true, 
+          verticalNavigation: true 
+        }, 
+        headerFilter: true, 
+        width: 100 
+      },
+      { title: "Comments", field: "Comments", hozAlign: "left", visible: false },
+      { title: "Attachment", field: "Attachment", hozAlign: "left", visible: false }
+    ]
+  });
+
+  // --- Attach Table-Specific Event Listeners ---
+  tabulatorInstance.on("cellEdited", handleCellEdit);
+  tabulatorInstance.on("rowClick", function(e, row) {
+    e.preventDefault();
+    const data = row.getData();
+    showModalEditForm(data);
+  });
+}
+
+/**
+ * Fetches data from the server.
+ */
+function loadData() {
+  google.script.run
+    .withSuccessHandler(onDataLoaded) // New, correct handler
+    .withFailureHandler(onDataLoadError)
+    .getData();
+}
+
+/**
+ * Success handler for loadData. Populates the *existing* table.
+ */
+function onDataLoaded(jsdata) {
+  // SET DATA on the *existing* table instance
+  tabulatorInstance.setData(jsdata)
+    .then(() => {
+      // --- Post-Load Setup ---
+      loadingEnd();
+      const refreshButton = document.getElementById("refresh");
+      if (refreshButton) {
+        refreshButton.classList.remove('fa-spin');
+      }
+      
+      // Setup autocomplete for the "Add Record" form
+      setupFormAutocomplete(jsdata);
+    })
+    .catch((err) => {
+      console.error("Error setting Tabulator data: ", err);
+      loadingEnd();
+      showToast('error', 'Error updating table data.');
+    });
+}
+
+function onDataLoadError(er) {
+  loadingEnd();
+  showToast('error', 'Failed to load data. Please refresh.');
+  console.error(er);
+}
+
+/**
+ * Called after edits/adds to force a full data reload.
+ */
+function restart() {
+  loadingStart();
+  loadData();
+}
+
+/**
+ * Called by the refresh button.
+ */
+function refreshTable() {
+  loadingStart();
+  loadData(); // This will fetch new data and trigger onDataLoaded
+  if (tabulatorInstance) {
+    tabulatorInstance.refreshFilter(); // Re-applies any active filters
+  }
+}
+
+/**
+ * ===================================================================
+ * EVENT HANDLERS (Clicks, Inputs)
+ * ===================================================================
+ */
+
+// --- Table Filtering Functions ---
+function searchUser(e) {
+  tabulatorInstance.setFilter([ // Use tabulatorInstance
+    [
+      { field: "JagNumber", type: "like", value: e.target.value },
+      { field: "Email", type: "like", value: e.target.value },
+      { field: "Name", type: "like", value: e.target.value },
+      { field: "Description", type: "like", value: e.target.value },
+      { field: "Comments", type: "like", value: e.target.value },
+    ]
+  ]);
+}
+
+function selectAgent(e) {
+  sessionStorage.setItem("agent", e.target.value);
+  tabulatorInstance.setFilter("Assigned", "like", e.target.value); // Use tabulatorInstance
+}
+
+function selectTopic(e) {
+  tabulatorInstance.setFilter("Category", "like", e.target.value); // Use tabulatorInstance
+}
+
+function searchRecord(e) {
+  tabulatorInstance.setFilter("RecordNumber", "like", e.target.value); // Use tabulatorInstance
+}
+
+// --- Table Cell Edit Handling (Refactored) ---
+
+function handleCellEdit(cell) {
+  const data = cell.getRow().getData();
+  const field = cell.getField();
+  const newValue = cell.getValue();
+  const oldValue = cell.getOldValue();
+  const id = data.RecordNumber;
+  const stat = data.Status;
+  
+  // Don't do anything if value didn't actually change
+  if (newValue === oldValue) {
+    return;
+  }
+
+  const action = `Changed ${field} on record no. ${id} from ${oldValue} to ${newValue}`;
+  const swalConfirm = {
+    customClass: {
+      confirmButton: 'btn btn-success m-1',
+      cancelButton: 'btn btn-danger m-1'
+    },
+    buttonsStyling: false,
+    showCancelButton: true,
+    reverseButtons: true
+  };
+
+  if (field === "Status" && stat === "Closed") {
+    // --- CONFIRMATION FOR CLOSING TICKET ---
+    Swal.fire({
+      ...swalConfirm,
+      title: 'Are you sure?',
+      text: "Check the box below to notify the customer.",
+      icon: 'warning',
+      input: 'checkbox',
+      inputPlaceholder: 'Send email notification',
+      confirmButtonText: 'Yes, close it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const sendEmail = (result.value === 1);
+        if (sendEmail) {
+          google.script.run
+            .withSuccessHandler(() => console.log("Close email sent."))
+            .withFailureHandler((er) => console.error("Email send failed:", er))
+            .sendClosedEmail({ email: data.Email, recNum: data.RecordNumber });
+        }
+        // Proceed with the edit
+        runBackendEdit(id, newValue, field, action);
+      } else {
+        cell.restoreOldValue();
+      }
+    });
+
+  } else if (field === "Status" && stat === "Cancelled") {
+    // --- CONFIRMATION FOR CANCELLING TICKET ---
+    Swal.fire({
+      ...swalConfirm,
+      title: 'Are you sure?',
+      text: "This will archive the ticket.",
+      icon: 'warning',
+      confirmButtonText: 'Yes, cancel it'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        runBackendEdit(id, newValue, field, action);
+      } else {
+        cell.restoreOldValue();
+      }
+    });
+
+  } else {
+    // --- ALL OTHER EDITS (Assignee, or Status to New/Open) ---
+    if (["Status", "Assigned"].includes(field)) {
+      elements.alerts.textContent = "Saving changes...";
+      alerts.style.color = "white";
+      runBackendEdit(id, newValue, field, action);
+    }
+  }
+}
+
+/**
+ * Helper function to run the backend editStatus and logEvent calls.
+ * This is called by handleCellEdit after user confirmation (if needed).
+ */
+function runBackendEdit(id, val, field, action) {
+  google.script.run
+    .withSuccessHandler(() => {
+      showToast('success', 'Changes saved!');
+      clearAlerts(elements.alerts);
+      restart(); // Reload data to show change
+    })
+    .withFailureHandler((er) => {
+      showToast('error', 'Failed to save!');
+      clearAlerts(elements.alerts);
+      console.error(er);
+    })
+    .editStatus({ id: id, val: val, field: field });
+
+  // Log the event in parallel
+  google.script.run
+    .withSuccessHandler(() => console.log("Action logged:", action))
+    .withFailureHandler((er) => console.error("Log failed:", er))
+    .logEvent(action);
+}
+
+/**
+ * ===================================================================
+ * MODAL & FORM FUNCTIONS (Add, Edit, PD)
+ * ===================================================================
+ */
+
+// --- Edit Record Modal ---
+function showModalEditForm(data) {
+  const myModalEditForm = new bootstrap.Modal(document.getElementById('myModal'), { keyboard: false });
+  jagModal = data.JagNumber; // Store Jag# for PD check
+
+  // Populate modal fields
+  document.getElementById('RecordNum').innerHTML = data.RecordNumber;
+  document.getElementById('RecordDate').value = data.Date;
+  document.getElementById('RecordTime').value = data.Time;
+  document.getElementById('RecordCat').value = data.Category;
+  document.getElementById('RecordName').value = data.Name;
+  document.getElementById('RecordEmail').value = data.Email;
+  document.getElementById('RecordPhone').value = data.Phone;
+  document.getElementById('RecordJag').value = data.JagNumber;
+  document.getElementById('RecordDesc').value = data.Description;
+  document.getElementById('RecordStat').value = data.Status;
+  document.getElementById('RecordAss').value = data.Assigned;
+  document.getElementById('RecordComm').value = data.Comments;
+
+  // Handle attachment link
+  const link = document.getElementById('dynamicLink');
+  if (data.Attachment && data.Attachment.startsWith('http')) {
+    link.href = data.Attachment;
+    link.textContent = `Ticket Attachment`;
+    link.style.display = "inline";
+  } else {
+    link.href = '#';
+    link.textContent = '';
+    link.style.display = "none";
+  }
+  
+  myModalEditForm.show();
+  document.getElementById("edit-record-button").disabled = false;
+}
+
+function editRecord() {
+  loadingStart();
+  const id = document.getElementById("RecordNum").innerHTML;
+  
+  const customerInfo = {
+    Date: document.getElementById('RecordDate').value,
+    Time: document.getElementById('RecordTime').value,
+    Email: document.getElementById('RecordEmail').value,
+    Name: document.getElementById('RecordName').value,
+    Phone: document.getElementById('RecordPhone').value,
+    JagNumber: document.getElementById('RecordJag').value,
+    Category: document.getElementById('RecordCat').value,
+    Description: document.getElementById('RecordDesc').value,
+    Status: document.getElementById('RecordStat').value,
+    Assigned: document.getElementById('RecordAss').value,
+    Comments: document.getElementById('RecordComm').value,
+    Attachment: document.getElementById('dynamicLink').href
+  };
+
+  const action = `Edited fields on record no. ${id} (via modal)`;
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      loadingEnd();
+      editCompleteAlert();
+      hideModal('myModal');
+      restart(); // Reload data
+    })
+    .withFailureHandler((er) => {
+      loadingEnd();
+      errorAlert();
+      console.error(er);
+    })
+    .editCustomerById(id, customerInfo);
+
+  google.script.run
+    .withSuccessHandler(() => console.log("Logged edit"))
+    .withFailureHandler((er) => console.log("Did not record log"))
+    .logEvent(action);
+}
+
+// --- Add Record Modal ---
+function openFormRecord() {
+  const myModalRegist = new bootstrap.Modal(document.getElementById('customAdd'), { keyboard: false });
+  document.getElementById("addRecordForm").reset();
+  myModalRegist.show();
+}
+
+function checkIsValid() {
+  console.log("Checking form validity...");
+  const emailValid = document.getElementById("email_add").checkValidity();
+  const jagValid = document.getElementById("jag_add").checkValidity();
+  const upFile = document.querySelector('.uploader');
+
+  if (document.getElementById("name_add").value == "" || document.getElementById("email_add").value == "" || document.getElementById("jag_add").value == "" || document.getElementById("cat_add").value == "") {
+    emptyAlert();
+  } else if (!emailValid || !jagValid) {
+    fixAlert();
+  } else if (upFile && upFile.files.length > 0) {
+    loadingStart();
+    console.log("File detected, starting upload...");
+    upLoadFile();
+  } else {
+    loadingStart();
+    console.log("No file detected, adding record...");
+    addRecord(null); // Pass null for imageURL
+  }
+}
+
+function upLoadFile() {
+  const upFile = document.querySelector('.uploader');
+  const upFiles = upFile.files[0];
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    const vals = reader.result.split(',');
+    const obj = {
+      fileName: upFiles.name,
+      mimeType: upFiles.type,
+      data: vals[1]
+    };
+    
+    google.script.run
+      .withSuccessHandler(function(response) {
+        const match = response.url.match(/\/d\/(.*?)\//);
+        let fileId = "";
+        if (match && match[1]) {
+          fileId = match[1];
+        }
+        const imageURL = "https://drive.usercontent.google.com/download?id=" + fileId;
+        console.log("Direct Download URL:", imageURL);
+        addRecord(imageURL); // Pass URL to addRecord
+      })
+      .withFailureHandler((er) => {
+         loadingEnd();
+         errorAlert("File upload failed.");
+         console.error(er);
+      })
+      .doUpload(obj);
+  };
+  
+  if (upFiles) {
+    reader.readAsDataURL(upFiles);
+  }
+}
+
+function addRecord(imageURL) {
+  console.log("Adding record now");
+  const newEmail = document.getElementById('email_add').value.toLowerCase();
+  const newName = document.getElementById('name_add').value;
+  const newPhone = document.getElementById('phone_add').value;
+  const newJag = document.getElementById('jag_add').value.toUpperCase();
+  const newCat = document.getElementById('cat_add').value;
+  const newAgt = document.getElementById('agent_add').value;
+  const newDesc = document.getElementById('desc_add').value;
+  const emailBool = document.getElementById('email_yn').checked;
+  const url = imageURL || ""; // Ensure url is not null
+
+  const action = "User added new record for " + newName;
+
+  google.script.run
+    .withSuccessHandler(() => {
+      loadingEnd();
+      hideModal('customAdd');
+      addCompleteAlert();
+      restart();
+    })
+    .withFailureHandler((er) => {
+      console.log("Did not add:", er);
+      errorAlert();
+      loadingEnd();
+    })
+    .addNewRecord(newEmail, newName, newPhone, newJag, newCat, newAgt, newDesc, emailBool, url);
+
+  google.script.run
+    .withSuccessHandler(() => console.log("Logged add"))
+    .withFailureHandler((er) => console.log("Did not record log"))
+    .logEvent(action);
+}
+
+// --- PD Info Modal ---
+function pullPD() {
+  google.script.run
+    .withSuccessHandler(pdData => {
+      const pdInfo = pdData.map(userInfo => {
+        const { date, title, hours, instructor, method } = userInfo;
+        return { date, title, hours, instructor, method };
+      });
+      pdPopUp(pdInfo);
+    })
+    .withFailureHandler(er => {
+      console.log('Failed to retrieve PD data', er);
+      showToast('error', 'Failed to retrieve PD data.');
+    })
+    .parsePD(jagModal);
+}
+
+function pdPopUp(pdInfo) {
+  const pdModalForm = new bootstrap.Modal(document.getElementById('pdModal'), { keyboard: false });
+  if (pdInfo.length === 0) {
+    noRecord();
+  } else {
+    pdModalForm.show();
+    presentData(pdInfo);
+  }
+}
+
+function presentData(pdInfo) {
+  const tbody = document.getElementById('matchData'); // <-- This ID must exist in your table.html
+  
+  if (!tbody) {
+    console.error("PD Modal table body (id='matchData') not found!");
+    return;
+  }
+  
+  tbody.innerHTML = ''; // Clear existing data
+  tbody.style.border = '1px solid black';
+
+  // Add table headers
+  const header = tbody.insertRow(0);
+  const addHeaderCell = (text) => {
+    const cell = header.insertCell();
+    cell.style.textAlign = "center";
+    cell.style.fontWeight = "bold";
+    cell.style.border = '1px solid black';
+    cell.innerHTML = text;
+  };
+  addHeaderCell("Date");
+  addHeaderCell("Hours");
+  addHeaderCell("Title");
+  addHeaderCell("Instructor");
+  addHeaderCell("Method");
+
+  // loop through data source
+  pdInfo.forEach(item => {
+    const tr = tbody.insertRow(tbody.rows.length);
+    
+    const addCell = (text, align = "left") => {
+      const td = tr.insertCell();
+      td.style.border = '1px solid black';
+      td.style.padding = '5px';
+      td.style.textAlign = align;
+      td.innerHTML = text;
+    };
+    
+    addCell(item.date);
+    addCell(item.hours, "center");
+    addCell(item.title);
+    addCell(item.instructor);
+    addCell(item.method, "center");
+  });
+}
+
+function clearTable() {
+  console.log("clearing PD table");
+  const Table = document.getElementById("matchData"); // <-- This ID must exist in your table.html
+  if(Table) {
+    Table.innerHTML = "";
+  }
+}
+
+
+/**
+ * ===================================================================
+ * HELPER & UTILITY FUNCTIONS
+ * ===================================================================
+ */
+
+function loadingStart() {
+  elements.loadingSpinner.classList.remove("invisible");
+}
+
+function loadingEnd() {
+  elements.loadingSpinner.classList.add("invisible");
+}
+
+function clearAlerts(el) {
+  setTimeout(() => {
+    if(el) el.textContent = "";
+  }, 3000);
+}
+
+/**
+ * Hides a Bootstrap modal by its ID.
+ * @param {string} modalId - The ID of the modal element to hide.
+ */
+function hideModal(modalId) {
+  const modalEl = document.querySelector('#' + modalId);
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) {
+      modal.hide();
+    }
+  }
+}
+
+/**
+ * Dynamically builds <option> elements for a <select> dropdown
+ * @param {string} elementId - The ID of the <select> element.
+ * @param {string[]} optionsArray - The array of strings to use for options.
+ * @param {string} defaultOptionText - The text for the default (value="") option.
+ */
+function populateDropdown(elementId, optionsArray, defaultOptionText = "All") {
+  const selectElement = document.getElementById(elementId);
+  if (!selectElement) return;
+  
+  selectElement.innerHTML = ''; // Clear existing options
+
+  // Add the default "All" option
+  const defaultOption = document.createElement('option');
+  defaultOption.value = "";
+  defaultOption.textContent = defaultOptionText;
+  selectElement.appendChild(defaultOption);
+
+  // Add options from the array
+  optionsArray.forEach(name => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    selectElement.appendChild(option);
+  });
+}
+
+/**
+ * Populates the autocomplete <datalist> elements for the "Add Record" form
+ */
+function setupFormAutocomplete(jsdata) {
+  console.log("Setting up autocomplete");
+  const nameInput = document.getElementById("name_add");
+  const emailInput = document.getElementById("email_add");
+  const jagInput = document.getElementById("jag_add");
+  const nameOptions = document.getElementById("nameOptions");
+  const emailOptions = document.getElementById("emailOptions");
+  const jagOptions = document.getElementById("jagOptions");
+
+  // Use Sets for unique values
+  const uniqueNames = new Set();
+  const uniqueEmails = new Set();
+  const uniqueJags = new Set();
+
+  jsdata.forEach(item => {
+    if (item.Name) uniqueNames.add(item.Name);
+    if (item.Email) uniqueEmails.add(item.Email);
+    if (item.JagNumber) uniqueJags.add(item.JagNumber);
+  });
+
+  // Helper to append options
+  function appendOptions(datalist, itemSet) {
+    if (!datalist) return;
+    datalist.innerHTML = ''; // Clear old options
+    itemSet.forEach(value => {
+      const option = document.createElement("option");
+      option.value = value;
+      datalist.appendChild(option);
+    });
+  }
+
+  // Build datalists from the unique Sets
+  appendOptions(nameOptions, uniqueNames);
+  appendOptions(emailOptions, uniqueEmails);
+  appendOptions(jagOptions, uniqueJags);
+
+  // Add input listeners for autofill
+  nameInput.addEventListener("input", function() {
+    const matchingName = jsdata.find(item => item.Name && item.Name.toLowerCase() === nameInput.value.toLowerCase());
+    if (matchingName) {
+      emailInput.value = matchingName.Email;
+      jagInput.value = matchingName.JagNumber;
+    }
+  });
+
+  emailInput.addEventListener("input", function() {
+    const matchingEmail = jsdata.find(item => item.Email && item.Email.toLowerCase() === emailInput.value.toLowerCase());
+    if (matchingEmail) {
+      nameInput.value = matchingEmail.Name;
+      jagInput.value = matchingEmail.JagNumber;
+    }
+  });
+
+  jagInput.addEventListener("input", function() {
+    const matchingJag = jsdata.find(item => item.JagNumber && item.JagNumber === jagInput.value && jagInput.value !== 'J00000000');
+    if (matchingJag) {
+      nameInput.value = matchingJag.Name;
+      emailInput.value = matchingJag.Email;
+    }
+  });
+}
+
+/**
+ * ===================================================================
+ * ALERTS (SweetAlert Wrappers)
+ * ===================================================================
+ */
+
+/**
+ * Shows a simple success/error toast notification.
+ * @param {string} icon - 'success', 'error', 'warning', 'info'
+ * @param {string} title - The text to display.
+ */
+function showToast(icon, title) {
+  Swal.fire({
+    icon: icon,
+    title: title,
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2500,
+    timerProgressBar: true
+  });
+}
+
+function emptyAlert() {
+  showToast('error', 'Please fill out all required fields.');
+}
+
+function errorAlert(message = 'There was a problem!') {
+  showToast('error', message);
+}
+
+function editCompleteAlert() {
+  showToast('success', 'Record successfully edited!');
+}
+
+function addCompleteAlert() {
+  showToast('success', 'The record has been added.');
+}
+
+function fixAlert() {
+  showToast('error', 'Please check the form for errors.');
+}
+
+function noRecord() {
+  Swal.fire({
+    icon: 'info',
+    title: 'No Records Found',
+    html: 'No PD records have been found for this user.',
+    timer: 2000,
+    showConfirmButton: false,
+    timerProgressBar: true,
+  });
+}
+
+function partyNyan() {
+  Swal.fire({
+    title: "PARTY TIME!!",
+    width: 300,
+    padding: "3em",
+    color: "#716add",
+    background: "#fff url(https://c.tenor.com/fJh-W38iA3oAAAAC/tenor.gif) no-repeat",
+    backdrop: `
+      rgba(0,0,123,0.4)
+      url("https://vignette3.wikia.nocookie.net/fantendo/images/9/9f/Nyan_cat_animated.gif/revision/latest?cb=20121125193107")
+      left top
+    `
+  });
+}
+
+</script>
