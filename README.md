@@ -67,30 +67,26 @@ You can choose to have a separate sheet that houses staff/faculty information, w
 <summary>Support System Tool (Ticketing)</summary>
 <br>
 
-1. Create a Google Sheet and create columns in the following order: RecordNumber, Date, Time, Email, Name, Phone, idNumber, Category, Description, Status, Assigned, Comments.
-2. Go to Extensions
-3. Select 'Apps Script'
-4. Rename Apps Script file to a descriptive name
-5. Copy web_app.gs into the .gs script file.
-6. Create seven html files (for EmailTemplatee, NewEmail, etc.) and copy the corresponding HTML into each one from the repository.
-7. In the web_app.gs (or code.gs) script file on line 44, include a spreadsheet ID for the separate professional development data spreadsheet (ID is the part of the url with a string of numbers and letters, similar to the folder ID above).
-8. In the web_app.gs (or code.gs) script file on line 173-202, be sure to change any values to correspond to your department/college name.
-9. In the webapp.html file on lines 39-58, be sure to update the dropdown lists with your support services (e.g. Canvas, Zoom) and support staff (e.g. 'Agent 1' will be changed to 'Sally' in all instances. THESE MUST MATCH THE VALUES IN LINES 157-174 EXACTLY).
-10. In the webapp.html file on line 168, be sure to add your support staff names (these must be the same as those in step 9).
-11. In customAdd.html on line 23, the title and required pattern must match institutional emails.
-12. In customAdd.html on line 33, use a regular expression (RegEx) to match your SIS ID (you can optionally remove the required pattern)
-13. In customAdd.html on lines 38-46, be sure to change the dropdown options to the support services you offer.
-14. In customAdd.html on lines 52-56, be sure to change the dropdown options to the support staff members names.
-15. In the email templates, be sure to update the text to reflect what you would like to be displayed in automatic emails.
-16. Click 'Run' in the Apps Script editor and agree to the permissions popup.
-17. To deploy, select 'Deploy' in the Apps Script editor to open a testing URL, or publish a version of the app to get a stable URL. 
+1. Create a Google Sheet and change the sheet name to "Ticket Logs". Add another sheet called "History".
+2. Create columns in the following order on "Ticket Logs": RecordNumber, Date, Time, Email, Name, Phone, idNumber, Category, Description, Status, Assigned, Comments.
+3. Create columns in the following order on "History": Date/Time, User, Action.
+4. Go to Extensions
+5. Select 'Apps Script'
+6. Rename Apps Script file to a descriptive name
+7. Copy web_app.gs into the .gs script file.
+8. Create html files (for EmailTemplatee, NewEmail, etc.) and copy the corresponding HTML into each one from the repository.
+9. In web_app.gs be sure to update the CONFIG sectoin to include the right Slack channel ID, drive folder, and spreadsheet ID. Also change the slack user list.
+10. In javscript.html, update the staff and topic lists.
+11. In the Apps Script interface, open settings and add SLACK_ACCESS_TOKEN and SLACK_POST_URL.
+12. Click 'Run' in the Apps Script editor and agree to the permissions popup.
+13. To deploy, select 'Deploy' in the Apps Script editor to open a testing URL, or publish a version of the app to get a stable URL. 
 
 </details>
 
 
 ### Customization
 
-Coming Soon
+Any customization can be done by replacing URLs and language in the text fields of the JS and HTML. Global constants have been added in the most refactor to simplify the process.
 
 ## Help
 
@@ -107,3 +103,4 @@ This project is currently being developed. This is a repo for the demo version.
 ## License
 
 This project is licensed under the BSD-1-Clause License - see the LICENSE.txt file for details
+
