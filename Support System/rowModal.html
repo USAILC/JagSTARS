@@ -1,82 +1,78 @@
-<div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="w-auto modal-title" id="exampleModalLabel">
-            <div class="row align-items-start">
-              <div class="w-auto col-2">
-              <strong style='font-size:1.2em; margin-top:15px;'> Record No.</strong>
-              </div>
-              <div class="col-1"> 
-              <input class="h-auto w-auto form-control-plaintext" style='font-size:1.2em; margin-top:-8px;' id="RecordNum" disabled></input>
-              </div>
-              <div class="col-1"> 
-              <strong style='font-size:1.2em;'>Details </strong>
-              </div>
-              
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="w-auto modal-title" id="exampleModalLabel">
+                <div class="row align-items-start">
+                  <div class="col-auto">
+                  <b> Record No. <mark id="RecordNum"></mark> Details</b>
+                  </div>
+                  
+                </div>
+              </h5>
+              <button type="button" class="btn btn-info" style="width:150px" id="pd-access"> <span class="spinner-border spinner-border-sm" id="spinner" style="display:none" role="status" aria-hidden="true"></span> PD Record </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" style="margin-left:35px;margin-right:25px" aria-label="Close"></button>
             </div>
-          </h5>
-          <button type="button" class="btn btn-info" style="width:150px" id="pd-access"> <span class="spinner-border spinner-border-sm" id="spinner" style="display:none" role="status" aria-hidden="true"></span> PD Record </button>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" style="margin-left:35px;margin-right:25px" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-              <div style="margin-left:5px"class="row">
-                <div class="column" style="margin-right:20px">
-                  <h2 style="float:left; font-size:15px"><b>Time:</b></h2>
-                    <input type="text" class="form-control-plaintext" id="RecordDate" disabled></input>
-                    <input type="text" class="form-control-plaintext" id="RecordTime" disabled></input>
-                </div>
-                <div class="column" style="margin-left:20px">
-                  <h2 style="float:left; font-size:15px"><b>Status:</b></h2>
-                    <input type="text" class="form-control-plaintext" id="RecordStat" disabled>
-                    <input type="text" class="form-control-plaintext" id="RecordAss" disabled>
-                </div>
+            <div class="modal-body">
+                  <div style="margin-left:5px"class="row">
+                    <div class="column" style="margin-right:20px">
+                      <h2 style="float:left; font-size:15px"><b>Time:</b></h2>
+                        <input type="text" class="form-control-plaintext" id="RecordDate" disabled></input>
+                        <input type="text" class="form-control-plaintext" id="RecordTime" disabled></input>
+                    </div>
+                    <div class="column" style="margin-left:20px">
+                      <h2 style="float:left; font-size:15px"><b>Status:</b></h2>
+                        <input type="text" class="form-control-plaintext" id="RecordStat" disabled>
+                        <input type="text" class="form-control-plaintext" id="RecordAss" disabled>
+                    </div>
 
-              <br>
-              
-              <div style="margin-left:5px;margin-left:5px;width: 400px;" class="column">
-                  <div>
-                  <label><strong>Name:</strong></label>
-                  <input type="text" style="background-color: transparent;border: 0px;color: black;" id="RecordName" disabled>
+                  <br>
+                  
+                  <div style="margin-left:5px;margin-left:5px;width: 400px;" class="column">
+                      <div>
+                      <label><strong>Name:</strong></label>
+                      <input type="text" style="background-color: transparent;border: 0px;color: black;" id="RecordName" disabled>
+                      </div>
+                      <div style="white-space: nowrap;">
+                      <label><strong>Email:</strong></label>
+                      <input type="text" style="width:1000px; background-color: transparent;border: 0px;color: black;" id="RecordEmail" disabled>
+                      </div>
+                      <div style="white-space: nowrap;">
+                      <label><strong>Phone:</strong></label>
+                      <input type="text" style="width:1000px; background-color: transparent;border: 0px;color: black;" id="RecordPhone" disabled>
+                      </div>
+                      <div>
+                      <label><strong>Jag #:</strong></label>
+                      <input type="text" style="background-color: transparent;border: 0px;color: black;" id="RecordJag" disabled>
+                      </div>
+                      <div>
+                      <label><strong>Category:</strong></label>
+                      <input type="text" style="background-color: transparent;border: 0px;color: black;" id="RecordCat" disabled>
+                      </div>                
                   </div>
-                  <div style="white-space: nowrap;">
-                  <label><strong>Email:</strong></label>
-                  <input type="text" style="width:1000px; background-color: transparent;border: 0px;color: black;" id="RecordEmail" disabled>
+                  <br>
                   </div>
-                  <div style="white-space: nowrap;">
-                  <label><strong>Phone:</strong></label>
-                  <input type="text" style="width:1000px; background-color: transparent;border: 0px;color: black;" id="RecordPhone" disabled>
+                  <br>
+                  <div style="margin-left:5px" class="row">
+                    <div class="textcolumn">
+                      <strong style="float:left">Description:</strong><br>
+                        <textarea type="text" class="form-control-plaintext" id="RecordDesc" rows="5" disabled></textarea>
+                      <a id="dynamicLink" href="" target="_blank"></a>
+                      <br>
+                  <div class="col">
+                    <label class="form-label">Comments:</label><br>
+                    <textarea type="text" class="form-control" rows="5" id="RecordComm" onchange="buttonAppear()"></textarea>
                   </div>
-                  <div>
-                  <label><strong>ID #:</strong></label>
-                  <input type="text" style="background-color: transparent;border: 0px;color: black;" id="RecordID" disabled>
+                  <button type="button" class="btn btn-primary mt-4" data-bs-dismiss="modal" style="--bs-btn-padding-y: 0.4rem; --bs-btn-padding-x: 2rem; --bs-btn-font-size: 1rem;" id="edit-record-button" disabled> Add Comment </button>
+                    </div>
                   </div>
-                  <div>
-                  <label><strong>Category:</strong></label>
-                  <input type="text" style="background-color: transparent;border: 0px;color: black;" id="RecordCat" disabled>
-                  </div>                
               </div>
-              <br>
-              </div>
-              <br>
-              <div style="margin-left:5px" class="row">
-                <div class="textcolumn">
-                  <strong style="float:left">Description:</strong><br>
-                    <textarea type="text" class="form-control-plaintext" id="RecordDesc" rows="5" disabled></textarea>
-              <div class="col">
-                <label class="form-label">Comments:</label><br>
-                <textarea type="text" class="form-control" rows="5" id="RecordComm" onchange="buttonAppear()"></textarea>
-              </div>
-              <button type="button" class="btn btn-primary mt-4" data-bs-dismiss="modal" style="--bs-btn-padding-y: 0.4rem; --bs-btn-padding-x: 2rem; --bs-btn-font-size: 1rem;" id="edit-record-button" disabled> Add Comment </button>
-                </div>
-              </div>
+            </div>
+            <div class="modal-footer">
+            </div>
           </div>
         </div>
-        <div class="modal-footer">
-        </div>
       </div>
-    </div>
-  </div>
 
 <script>
 var pdButton = document.getElementById('pd-access')
@@ -84,14 +80,14 @@ var pdSpinner = document.getElementById('spinner');
 
 pdButton.addEventListener('click', function() {
 
-// Show the spinner
-pdSpinner.style.display = 'inline-block';
+  // Show the spinner
+  pdSpinner.style.display = 'inline-block';
 
-// Wait for 3 seconds
-setTimeout(function() {
+  // Wait for 3 seconds
+  setTimeout(function() {
 
-// Hide the spinner
-pdSpinner.style.display = 'none';
-}, 3000);
+    // Hide the spinner
+    pdSpinner.style.display = 'none';
+  }, 3000);
 });
 </script>
